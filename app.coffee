@@ -172,9 +172,9 @@ app.post '/challenges/:id/vote', (req, res) ->
 
 # Allow login as admin and using artist / uploadId
 app.get '/login/:id?/:user/:pw', (req, res) ->
-  result = { success: false }
+  result = { success: false, message: 'This upload token does not seem to be valid for the challenge.' }
   req.session.isAdmin = req.params.user is config.user && req.params.pw is config.pw
-  
+
   if req.session.isAdmin
     result = { success: true, message: 'Welcome admin!' }
   else if req.params.id?

@@ -8,26 +8,39 @@
     <!-- <script src="https://unpkg.com/vue"></script> -->
     <style type="text/css">
       input[disabled] {
-	  background: red !important;
+          background: red !important;
       }
     </style>
   </head>
   <body>
     <div id="app" class="container">
 
+      <div v-if="showLogin && challenge && !challenge.uploadId" style="padding: 0.5em 1em; border: 1px solid #ccc; border-top: none; margin-bottom: 1em;">
+        <div class="row">
+          <div class="six columns">
+            <label for="token">Upload token</label>
+            <input v-model="token" name="token" class="u-full-width" id="token">
+          </div>
+          <div class="six columns">
+            <button v-on:click.prevent="login" style="margin-top:1.5rem;">Login</button>
+          </div>
+        </div>
+      </div>
+
       <div id="challenges">
-        <h2>Challenges</h2>    
+        <h2>Challenges</h2>
         <ul v-if="challenges && challenges.length">
           <li v-for="challenge in challenges">
-            <a v-on:click.prevent="openChallenge" v-bind:href="'#' + challenge">{{ challenge }}</a>
+            <a v-on:click.prevent="onChallengeClick" v-bind:href="'#' + challenge">{{ challenge }}</a>
           </li>
         </ul>
       </div>
 
-      <div id="challenge" v-if="challenge.id">
+      <div id="challenge" v-if="challenge.id" style="position: relative">
         <h2>{{ challenge.title }}</h2>
+        <a v-if="!showLogin && challenge.status === 3 && !challenge.uploadId" v-on:click.prevent="openLogin" href="#" style="position: absolute; right: 0; top: 0;">Login</a>
         <p style="margin-bottom: 0.5rem;">{{ challenge.info }}</p>
-	<a target="_blank" v-bind:href="challenge.url">{{ challenge.url }}</a><br /><br />
+        <a target="_blank" v-bind:href="challenge.url">{{ challenge.url }}</a><br /><br />
 
         <div v-if="challenge.downloads && challenge.downloads.length">
           <h3>Downloads</h3>
@@ -38,18 +51,18 @@
           </ul>
         </div>
 
-	<div v-if="challenge.start || challenge.end">
-	  <h3>Dates</h3>
+        <div v-if="challenge.start || challenge.end">
+          <h3>Dates</h3>
           <dl>
             <dt>Start</dt>
             <dd>{{ new Date(challenge.start).toLocaleString() }}</dd>
             <dt>End</dt>
             <dd>{{ new Date(challenge.end).toLocaleString() }}</dd>
           </dl>
-	</div>
+        </div>
 
         <form v-if="challenge.status === 2" v-on:submit.prevent="onSubmit" v-bind:action="'challenges/' + challenge.id + '/upload/'" method="post" enctype="multipart/form-data">
-	  <h3>Your entry</h3>
+          <h3>Your entry</h3>
           <div class="row">
             <div class="six columns">
               <label for="artist">Artist</label>
@@ -63,48 +76,48 @@
           <label for="file">FLAC / OGG / MP3 / WAV</label>
           <input ref="music" name="file" class="u-full-width" id="file" type="file" accept=".flac, .ogg, .mp3, .wav">
           <input ref="upload" class="button-primary" type="submit" value="Submit">
-	  <span v-if="uploadId || challenge.uploadId">Your uploadId: {{uploadId || challenge.uploadId}}</span>
+          <span v-if="uploadId || challenge.uploadId">Please copy your upload token: {{uploadId || challenge.uploadId}}</span>
         </form>
 
-	<form v-if="challenge.status > 2" v-on:submit.prevent="onVote" v-bind:action="'challenges/' + challenge.id + '/vote/'" method="post">
+        <form v-if="challenge.status > 2" v-on:submit.prevent="onVote" v-bind:action="'challenges/' + challenge.id + '/vote/'" method="post">
           <h3>Entries</h3>
           <table v-if="challenge.entries && challenge.entries.length">
-	    <thead>
-	      <tr>
-		<td>No.</td>
-		<td v-if="challenge.status > 3">Artist</td>
-		<td>Title</td>
-		<td>Audio</td>
-		<td v-if="challenge.uploadId && challenge.status === 3">Your Vote</td>
-		<td v-if="challenge.status > 3">Points</td>
-	      </tr>
-	    </thead>
-	    <tbody>
-              <tr v-for="(entry, index) in challenge.entries">
-		<td style="text-align: right;">{{index + 1}}</td>
-		<td v-if="challenge.status > 3">{{entry.artist}}</td>
-		<td>{{entry.title}}</td>
-		<td>
-		  <audio v-bind:src="'challenges/' + challenge.id + '/entries/' + entry.path" controls controlsList="nodownload" preload="metadata">
-		    <a v-bind:href="'challenges/' + challenge.id + '/entries/' + entry.path" download>{{ entry.title }}</a>
-		  </audio>
-		</td>
-		<td v-if="challenge.uploadId && challenge.status === 3">
-		  <select style="margin-bottom: 0" ref="vote" v-bind:name="entry.uploadId">
-		    <option>0</option>
-		    <option>1</option>
-		    <option>2</option>
-		    <option selected>3</option>
-		    <option>4</option>
-		    <option>5</option>
-		  </select>
-		</td>
-		<td v-if="challenge.status > 3">{{challenge.votes[entry.uploadId] || 0}}</td>
+            <thead>
+              <tr>
+                <td>No.</td>
+                <td v-if="challenge.status > 3">Artist</td>
+                <td>Title</td>
+                <td>Audio</td>
+                <td v-if="challenge.uploadId && challenge.status === 3">Your Vote</td>
+                <td v-if="challenge.status > 3">Points</td>
               </tr>
-	    <tbody>
+            </thead>
+            <tbody>
+              <tr v-for="(entry, index) in challenge.entries">
+                <td style="text-align: right;">{{index + 1}}</td>
+                <td v-if="challenge.status > 3">{{entry.artist}}</td>
+                <td>{{entry.title}}</td>
+                <td>
+                  <audio v-bind:src="'challenges/' + challenge.id + '/entries/' + entry.path" controls controlsList="nodownload" preload="metadata">
+                    <a v-bind:href="'challenges/' + challenge.id + '/entries/' + entry.path" download>{{ entry.title }}</a>
+                  </audio>
+                </td>
+                <td v-if="challenge.uploadId && challenge.status === 3">
+                  <select style="margin-bottom: 0" ref="vote" v-bind:name="entry.uploadId">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option selected>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                  </select>
+                </td>
+                <td v-if="challenge.status > 3">{{challenge.votes[entry.uploadId] || 0}}</td>
+              </tr>
+            <tbody>
           </table>
-	  <input v-if="challenge.uploadId && challenge.status === 3" class="button-primary" type="submit" value="Submit">
-	  <span v-if="challenge.uploadId && challenge.status === 3">Your uploadId: {{challenge.uploadId}}</span>
+          <input v-if="challenge.uploadId && challenge.status === 3" class="button-primary" type="submit" value="Submit">
+          <span v-if="challenge.uploadId && challenge.status === 3">Please copy your upload token: {{challenge.uploadId}}</span>
         </form>
 
       </div>
@@ -114,23 +127,25 @@
       var app = new Vue({
           el: '#app',
           data: {
+              showLogin : false,
+              token : '',
               challenges : [],
-              challenge: {
+              challenge : {
                   id: '',
                   downloads: [],
-		  entries : [],
-		  uploadId : '',
-		  votes : {}
+                  entries : [],
+                  uploadId : '',
+                  votes : {}
               },
-	      artist : '',
-	      title : '',
-	      uploadId : ''
+              artist : '',
+              title : '',
+              uploadId : ''
           },
           created : function() {
               /*
                Fetch available challenges via AJAX:
                https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-               
+
                https://www.techiediaries.com/vuejs-ajax-http/
                https://vuejsdevelopers.com/2017/08/28/vue-js-ajax-recipes/
                https://developers.google.com/web/updates/2015/03/introduction-to-fetch
@@ -144,11 +159,38 @@
                   }).catch(function(err) {
                       console.log('Fetch Error :-S', err);
                   });
+
+              // Support challenge permalinks
+              if(location.hash) {
+                  this.openChallenge(location.hash.substr(1));
+              }
           },
           methods : {
-              openChallenge: function(event) {
+              openLogin: function(event) {
+                  this.showLogin = !this.showLogin;
+              },
+              login: function(event) {
                   var self = this;
-                  fetch('challenges/' + event.target.hash.substr(1))
+                  fetch('login/' + this.challenge.id + '/token/' + this.token)
+                      .then(function (response) {
+                          return response.json();
+                      }).then(function (result) {
+                          alert(result.message);
+                          if(result.success) {
+                              self.showLogin = false;
+                              // Close the challenge. After opening it again the user should be able to vote.
+                              self.challenge = {};
+                          }
+                      }).catch(function(err) {
+                          console.log('Fetch Error :-S', err);
+                      });
+              },
+              onChallengeClick: function(event) {
+                  this.openChallenge(event.target.hash.substr(1));
+              },
+              openChallenge: function(id) {
+                  var self = this;
+                  fetch('challenges/' + id)
                       .then(function (response) {
                           return response.json();
                       }).then(function (result) {
@@ -158,55 +200,55 @@
                       });
               },
               onSubmit: function(event) {
-		  // https://philna.sh/blog/2016/06/13/the-surprise-multipart-form-data/
+                  // https://philna.sh/blog/2016/06/13/the-surprise-multipart-form-data/
                   // https://github.com/vuejs/Discussion/issues/24
-		  this.$refs.upload.setAttribute('disabled', true);
-		  this.$refs.upload.setAttribute('value', '...Uploading...');
-		  
-		  var data = new FormData();
-		  data.append('artist', this.artist);
-		  data.append('title', this.title);
-		  data.append('uploadId', this.challenge.uploadId);
-		  data.append('file', this.$refs.music.files[0]);
+                  this.$refs.upload.setAttribute('disabled', true);
+                  this.$refs.upload.setAttribute('value', '...Uploading...');
 
-		  var self = this;
+                  var data = new FormData();
+                  data.append('artist', this.artist);
+                  data.append('title', this.title);
+                  data.append('uploadId', this.challenge.uploadId);
+                  data.append('file', this.$refs.music.files[0]);
+
+                  var self = this;
                   fetch(event.target.action, {
-		      method: "POST",
-		      body: data
-		  }).then(function (response) {
+                      method: "POST",
+                      body: data
+                  }).then(function (response) {
                       return response.json();
                   }).then(function (result) {
-		      if(!result.message) {
-			  self.uploadId = result.uploadId;
-			  self.$refs.upload.removeAttribute('disabled');
-			  self.$refs.upload.setAttribute('value', 'Submit');
-			  window.setTimeout(function() { alert('Thanks for your entry!'); }, 0);
-		      } else {
-			  alert(result.message);
-		      }
-		  }).catch(function(err) {
-		      console.log('Fetch Error :-S', err);
-		  });
+                      if(!result.message) {
+                          self.uploadId = result.uploadId;
+                          self.$refs.upload.removeAttribute('disabled');
+                          self.$refs.upload.setAttribute('value', 'Submit');
+                          window.setTimeout(function() { alert('Thanks for your entry!'); }, 0);
+                      } else {
+                          alert(result.message);
+                      }
+                  }).catch(function(err) {
+                      console.log('Fetch Error :-S', err);
+                  });
               },
-	      onVote: function(event) {
-		  // AJAX form post
-		  var data = new FormData();
-		  this.$refs.vote.forEach(function(select, index) {
-		      data.append(select.name, select.value);
-		  });
-		  
-		  var self = this;
+              onVote: function(event) {
+                  // AJAX form post
+                  var data = new FormData();
+                  this.$refs.vote.forEach(function(select, index) {
+                      data.append(select.name, select.value);
+                  });
+
+                  var self = this;
                   fetch(event.target.action, {
-		      method: "POST",
-		      body: data
-		  }).then(function (response) {
+                      method: "POST",
+                      body: data
+                  }).then(function (response) {
                       return response.json();
                   }).then(function (result) {
-		      alert('Thanks for your vote!');
-		      console.log(result);
-		  }).catch(function(err) {
-		      console.log('Fetch Error :-S', err);
-		  });
+                      alert('Thanks for your vote!');
+                      console.log(result);
+                  }).catch(function(err) {
+                      console.log('Fetch Error :-S', err);
+                  });
               }
           }
       })
