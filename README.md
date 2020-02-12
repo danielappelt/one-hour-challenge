@@ -13,18 +13,20 @@ The token returned from the application after uploading a track serves as a logi
 
 #### Manual login
 
-<application url>/login/<challenge id>/token/<upload token>
+`<application url>/login/<challenge id>/token/<upload token>`
 
 ### For administrators
 
-<application url>/login/<user>/<pw>
+`<application url>/login/<user>/<pw>`
 
 The admin user and password has to be configured in the application-wide config.json:
 
+```javascript
 {
-	"user": "<admin user name>"
+	"user": "<admin user name>",
 	"pw": "<admin password>"
 }
+```
 
 ## Setting up a new challenge
 
