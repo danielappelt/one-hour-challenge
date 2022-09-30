@@ -30,9 +30,29 @@ The admin user and password has to be configured in the application-wide config.
 
 ## Setting up a new challenge
 
-Create a new folder in sub-folder challenges/. The folder's name will be used as challenge id and displayed as the challenge's name in the web application.
+Create a new folder in sub-folder challenges/. The folder's name will be used as challenge id and displayed as the challenge's name in the web application. Please create the following folder structure and files:
 
-### Challenge config.json
+```
+challenges/
+  <name of challenge>/
+    config.json: describe the challenge
+    downloads/
+      <file1>, .., <fileN>: downloadable challenge artifacts
+    entries/
+```
+
+### config.json
+
+The contents of your challenge's config.json should look like this
+
+```json
+{
+    "title": "Sonoj 2019 - One Hour Challenge",
+    "info": "Please allow JavaScript and Cookies for the challenge and uploads to work smoothly. Rules can be found here:",
+    "url" : "https://www.sonoj.org/challenge/rules.html",
+    "status": 0
+}
+```
 
 Use the status field  in order to switch between states disregarding provided start and end times:
 1 = announced, 2 = running, 3 = vote, 4 = finished (default 0 = auto)
